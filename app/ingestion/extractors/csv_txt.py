@@ -1,5 +1,3 @@
-import io
-
 from app.ingestion.extractors.base import BaseExtractor, ExtractedChunk
 
 LINES_PER_CHUNK = 100  # grouping per N baris

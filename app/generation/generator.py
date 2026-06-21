@@ -72,10 +72,8 @@ def generate_answer(
         # Menggunakan Chat Completion standar OpenAI-compatible milik Groq
         response = _client.chat.completions.create(
             model=settings.llm_model,  # Menggunakan model Groq (misal: llama-3.3-70b-specdec)
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2,            # Rendah dan deterministik untuk akurasi data RAG
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,  # Rendah dan deterministik untuk akurasi data RAG
             max_tokens=1024,
         )
         answer = response.choices[0].message.content.strip()

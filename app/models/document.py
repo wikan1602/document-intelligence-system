@@ -1,4 +1,6 @@
-from __future__ import annotations  # 💡 1. Tambahkan ini di baris paling atas untuk mempermudah string annotations
+from __future__ import (
+    annotations,
+)  # 💡 1. Tambahkan ini di baris paling atas untuk mempermudah string annotations
 
 import uuid
 from datetime import datetime
@@ -22,7 +24,9 @@ class Document(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     filename: Mapped[str] = mapped_column(String, nullable=False)
-    format: Mapped[str] = mapped_column(String, nullable=False)   # pdf|docx|pptx|xlsx|csv
+    format: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # pdf|docx|pptx|xlsx|csv
     file_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -30,7 +34,7 @@ class Document(Base):
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
 
     # 💡 4. Sekarang Anda bisa menulis list[Chunk] tanpa tanda petik jika di atas memakai __future__ annotations
-    chunks: Mapped[list[Chunk]] = relationship(  
+    chunks: Mapped[list[Chunk]] = relationship(
         "Chunk", back_populates="document", cascade="all, delete-orphan"
     )
 

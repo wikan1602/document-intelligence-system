@@ -1,7 +1,6 @@
 import io
 
 from docx import Document
-from docx.oxml.ns import qn
 
 from app.ingestion.extractors.base import BaseExtractor, ExtractedChunk
 

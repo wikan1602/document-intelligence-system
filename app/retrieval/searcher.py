@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.chunk import Chunk
-from app.models.document import Document
 
 
 @dataclass
@@ -14,7 +12,7 @@ class SearchResult:
     document_id: str
     filename: str
     content: str
-    score: float                    # cosine similarity (0-1, makin tinggi makin relevan)
+    score: float  # cosine similarity (0-1, makin tinggi makin relevan)
 
     # Source tracing
     page_number: int | None

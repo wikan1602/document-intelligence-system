@@ -8,15 +8,16 @@ class ExtractedChunk:
     Unit hasil ekstraksi dari dokumen — satu halaman, slide, atau section.
     Semua field source tracing bersifat opsional, diisi sesuai format.
     """
+
     text: str
 
     # Source tracing
-    page_number: int | None = None      # PDF
-    slide_number: int | None = None     # PPTX
-    slide_title: str | None = None      # PPTX
-    sheet_name: str | None = None       # XLSX
-    row_range: str | None = None        # XLSX / CSV
-    heading: str | None = None          # DOCX
+    page_number: int | None = None  # PDF
+    slide_number: int | None = None  # PPTX
+    slide_title: str | None = None  # PPTX
+    sheet_name: str | None = None  # XLSX
+    row_range: str | None = None  # XLSX / CSV
+    heading: str | None = None  # DOCX
 
     metadata: dict = field(default_factory=dict)
 

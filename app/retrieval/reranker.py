@@ -3,6 +3,7 @@ from sentence_transformers import CrossEncoder
 
 _model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
+
 def rerank(query: str, chunks: list, top_k: int = 5) -> list:
     """
     Rerank chunks berdasarkan relevansi terhadap query.

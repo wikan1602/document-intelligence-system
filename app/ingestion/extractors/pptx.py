@@ -1,7 +1,6 @@
 import io
 
 from pptx import Presentation
-from pptx.util import Pt
 
 from app.ingestion.extractors.base import BaseExtractor, ExtractedChunk
 

@@ -17,7 +17,9 @@ class Chunk(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     document_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[list[float] | None] = mapped_column(
@@ -26,12 +28,12 @@ class Chunk(Base):
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Source tracing — diisi sesuai format dokumen
-    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)    # PDF
-    slide_number: Mapped[int | None] = mapped_column(Integer, nullable=True)   # PPTX
-    slide_title: Mapped[str | None] = mapped_column(String, nullable=True)     # PPTX
-    sheet_name: Mapped[str | None] = mapped_column(String, nullable=True)      # XLSX
-    row_range: Mapped[str | None] = mapped_column(String, nullable=True)       # XLSX/CSV
-    heading: Mapped[str | None] = mapped_column(String, nullable=True)         # DOCX
+    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)  # PDF
+    slide_number: Mapped[int | None] = mapped_column(Integer, nullable=True)  # PPTX
+    slide_title: Mapped[str | None] = mapped_column(String, nullable=True)  # PPTX
+    sheet_name: Mapped[str | None] = mapped_column(String, nullable=True)  # XLSX
+    row_range: Mapped[str | None] = mapped_column(String, nullable=True)  # XLSX/CSV
+    heading: Mapped[str | None] = mapped_column(String, nullable=True)  # DOCX
 
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

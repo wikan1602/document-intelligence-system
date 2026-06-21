@@ -9,7 +9,7 @@ from app.core.config import settings
 
 engine = create_engine(
     settings.database_url,
-    pool_pre_ping=True,       # reconnect otomatis kalau koneksi putus
+    pool_pre_ping=True,  # reconnect otomatis kalau koneksi putus
     pool_size=5,
     max_overflow=10,
 )
