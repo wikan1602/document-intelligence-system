@@ -1,0 +1,33 @@
+# API
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+sqlalchemy
+psycopg2-binary
+pgvector
+
+# Config
+pydantic-settings
+
+# Extractors
+pymupdf                 # PDF (fitz) - lebih robust dari pypdf
+python-docx
+python-pptx
+openpyxl                # XLSX
+python-magic            # format detection
+
+# AI / Embedding / LLM
+openai
+groq
+google-generativeai     # Gemini (bukan google-genai)
+
+# Monitoring
+langfuse>=2.0.0
+
+# Utils
+tiktoken                # token counting untuk chunking
+tenacity                # retry logic untuk API calls
+
+sentence-transformers
