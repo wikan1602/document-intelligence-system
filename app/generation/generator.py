@@ -1,12 +1,15 @@
 # app/generation/generator.py
-from groq import Groq
+from openai import OpenAI  # 👈 Berubah dari Groq ke OpenAI SDK standard
 from langfuse import Langfuse, observe
 
 from app.core.config import settings
 from app.retrieval.searcher import SearchResult
 
-# Inisialisasi Client Groq
-_client = Groq(api_key=settings.groq_api_key)
+# Inisialisasi Client DeepSeek menggunakan OpenAI SDK wrapper
+_client = OpenAI(
+    api_key=settings.deepseek_api_key,
+    base_url="https://api.deepseek.com"  # 👈 Endpoint resmi DeepSeek API
+)
 
 # Init Langfuse (tetap aktif jika env vars dikonfigurasi)
 _langfuse = Langfuse(
@@ -63,21 +66,21 @@ def generate_answer(
     results: list[SearchResult],
 ) -> str:
     """
-    Generate jawaban dari Groq berdasarkan retrieved chunks.
+    Generate jawaban dari DeepSeek berdasarkan retrieved chunks.
     Mendukung auto-logging latency dan token ke Langfuse via decorator.
     """
     prompt = _build_prompt(question, results)
 
     try:
-        # Menggunakan Chat Completion standar OpenAI-compatible milik Groq
+        # Eksekusi Chat Completion menggunakan model DeepSeek V4 Flash
         response = _client.chat.completions.create(
-            model=settings.llm_model,  # Menggunakan model Groq (misal: llama-3.3-70b-specdec)
+            model=settings.llm_model,  # Membaca nilai 'deepseek-v4-flash' dari env
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,  # Rendah dan deterministik untuk akurasi data RAG
             max_tokens=1024,
         )
         answer = response.choices[0].message.content.strip()
     except Exception as e:
-        answer = f"Error generating answer via Groq: {str(e)}"
+        answer = f"Error generating answer via DeepSeek: {str(e)}"
 
     return answer

@@ -14,7 +14,7 @@ from app.generation.generator import generate_answer
 def test_full_end_to_end_rag_pipeline():
     """
     Integration test untuk menguji siklus RAG utuh:
-    Ingestion berkas, penyimpanan vektor database, similarity search, dan response generation via Groq.
+    Ingestion berkas, penyimpanan vektor database, similarity search, dan response generation via DeepSeek.
     """
     init_db()
     db = SessionLocal()
@@ -55,7 +55,7 @@ def test_full_end_to_end_rag_pipeline():
         assert len(results) > 0, "Sistem harus berhasil mengembalikan chunk yang relevan"
         assert results[0].score >= 0.0, "Skor kecocokan similarity harus valid"
 
-        # 4. Pengujian Generasi Jawaban LLM Groq
+        # 4. Pengujian Generasi Jawaban LLM DeepSeek (📄 Penyelarasan Komentar)
         answer = generate_answer(question, results)
         assert isinstance(answer, str), "Output dari model generator harus berupa string teks"
         assert len(answer.strip()) > 0, "Jawaban dari LLM tidak boleh kosong"
