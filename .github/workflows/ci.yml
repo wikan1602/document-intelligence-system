@@ -51,6 +51,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://docint_test:secret_test@localhost:5432/document_intelligence_test
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # 📄 PENYELARASAN: Diubah dari GEMINI_API_KEY ke GROQ_API_KEY
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
-          pytest tests/ -v
+          # 💡 PENYELARASAN: Menggunakan 'python -m pytest' untuk menyelesaikan ModuleNotFoundError
+          python -m pytest tests/ -v
