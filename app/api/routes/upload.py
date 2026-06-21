@@ -3,11 +3,13 @@ import shutil
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any
+from uuid import UUID
 
 from app.api.dependencies import get_db
 from app.ingestion.detector import detect_format
 
-# 📄 PENYELARASAN 1: Import fungsi chunk_extracted yang asli
+# 📄 PENYELARASAN 1: Import get_extractor yang sukses di unit test
+from app.ingestion.extractors import get_extractor
 from app.ingestion.chunker import chunk_extracted
 from app.ingestion.embedder import embed_texts
 from app.models.document import Document
@@ -25,51 +27,57 @@ async def upload_document(
 ) -> Dict[str, Any]:
     temp_file_path = os.path.join(TEMP_DIR, file.filename)
     try:
+        # 1. Simpan berkas sementara untuk menghitung ukuran file fisik
         with open(temp_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
         file_size = os.path.getsize(temp_file_path)
 
-        detector_result = detect_format(temp_file_path)
-        if not detector_result or not detector_result.get("supported"):
+        # 2. Ambil bytes data untuk diproses oleh extractor
+        with open(temp_file_path, "rb") as f:
+            file_bytes = f.read()
+
+        # 3. Deteksi format (Mengembalikan DocumentFormat Enum)
+        try:
+            file_format = detect_format(file.filename, file.content_type)
+        except ValueError as val_err:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Format file '{file.filename}' tidak didukung.",
+                detail=str(val_err),
             )
 
-        file_format = detector_result["format"]
-        extractor = detector_result["extractor"]
+        # 4. Ambil extractor yang sesuai berdasarkan format dokumen
+        extractor = get_extractor(file_format)
+        extracted_pages = extractor.extract(file_bytes, file.filename)
 
-        extracted_pages = extractor.extract(temp_file_path)
         if not extracted_pages:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Gagal mengekstrak teks atau dokumen kosong.",
             )
 
+        # 5. Rekam entitas Document ke database metadata
         db_document = Document(
             filename=file.filename,
-            format=str(
-                file_format
-            ),  # Pastikan diconvert string jika kolom DB bertipe string
+            format=str(file_format),  # Konversi enum ke string untuk kolom DB
             file_size=file_size,
             metadata={"content_type": file.content_type},
         )
         db.add(db_document)
         db.flush()
 
-        # 📄 PENYELARASAN 2: Panggil fungsi chunk_extracted asli milik Anda
+        # 6. Jalankan pemotongan teks secara semantik (Chunking)
         chunks_data = chunk_extracted(extracted_pages, file_format)
 
-        # 📄 PENYELARASAN 3: Ambil konten string menggunakan .text sesuai schema ExtractedChunk Anda
+        # 7. Buat representasi vektor 1536 dimensi via OpenAI Embedding
         texts_to_embed = [c.text for c in chunks_data]
-
         embeddings = embed_texts(texts_to_embed)
 
+        # 8. Lakukan bulk insert potongan chunk dokumen beserta vektornya ke pgvector
         for idx, (chunk_obj, embedding) in enumerate(zip(chunks_data, embeddings)):
             db_chunk = Chunk(
                 document_id=db_document.id,
-                content=chunk_obj.text,  # <-- Menggunakan chunk_obj.text dari ExtractedChunk
+                content=chunk_obj.text,
                 embedding=embedding,
                 chunk_index=idx,
                 page_number=chunk_obj.page_number,
@@ -91,6 +99,9 @@ async def upload_document(
             "chunk_count": len(chunks_data),
         }
 
+    except HTTPException as http_ex:
+        # Teruskan kembali HTTP Exception bawaan tanpa tertimpa block Exception global
+        raise http_ex
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -98,5 +109,6 @@ async def upload_document(
             detail=f"Terjadi kesalahan saat memproses dokumen: {str(e)}",
         )
     finally:
+        # Bersihkan file sampah di folder /tmp agar storage server tidak penuh
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
