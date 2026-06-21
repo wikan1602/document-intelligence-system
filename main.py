@@ -103,7 +103,7 @@ async def get_chatbot_ui():
                     <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fa-solid fa-brain text-lg"></i></div>
                     <div>
                         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Document Intelligence</h1>
-                        <p class="text-xs text-slate-500 font-medium">RAG Core Engine Active • Powered by Groq</p>
+                        <p class="text-xs text-slate-500 font-medium">RAG Core Engine Active • Powered by Deepseek</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -352,7 +352,7 @@ async def get_chatbot_ui():
                     sourcesHtml += `</div></div>`;
                 }
 
-                let latencyHtml = latency ? `<p class="text-[9px] text-right text-slate-400 mt-1 font-medium"><i class="fa-solid fa-gauge-high mr-1"></i> Groq inference: ${latency}ms</p>` : '';
+                let latencyHtml = latency ? `<p class="text-[9px] text-right text-slate-400 mt-1 font-medium"><i class="fa-solid fa-gauge-high mr-1"></i> LLM inference: ${latency}ms</p>` : '';
 
                 if (type === 'user') {
                     wrapper.innerHTML = `
