@@ -3,7 +3,6 @@ import shutil
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any
-from uuid import UUID
 
 from app.api.dependencies import get_db
 from app.ingestion.detector import detect_format
