@@ -29,10 +29,10 @@
 │   documents | chunks | embeddings    │
 └──────────────────────────────────────┘
         │                    │
-┌───────▼──────┐    ┌────────▼────────┐
-│  OpenAI      │    │  Groq           │
-│  Embedding   │    │  llama-3.3-70b  │
-└──────────────┘    └────────┬────────┘
+┌───────▼──────┐    ┌────────▼────────────┐
+│  OpenAI      │    │  Deepseek           │
+│  Embedding   │    │  deepseek-v4-flash  │
+└──────────────┘    └────────┬────────────┘
                              │
                     ┌────────▼────────┐
                     │    Langfuse     │
@@ -120,7 +120,7 @@ Bi-encoder (vector search) mengembedding query dan chunk secara terpisah — int
 
 ## 5. Generation
 
-**Model**: Groq `llama-3.3-70b-specdec`
+**Model**: Deepseek `deepseek-v4-flash`
 - Cost: jauh lebih murah dari GPT-4o
 - Latency: ~300-800ms (Groq menggunakan custom inference hardware)
 - Context window: 128K token
