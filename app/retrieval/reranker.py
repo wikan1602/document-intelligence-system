@@ -1,11 +1,11 @@
 # app/retrieval/reranker.py
 from sentence_transformers import CrossEncoder
-from langfuse import observe  # 👈 1. Tambahkan import ini
+from langfuse import observe
 
 _model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 
-@observe(name="rerank_chunks")  # 👈 2. Tambahkan dekorator di atas fungsi utama
+@observe(name="rerank_chunks")
 def rerank(query: str, chunks: list, top_k: int = 5) -> list:
     """
     Rerank chunks berdasarkan relevansi terhadap query.

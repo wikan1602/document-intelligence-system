@@ -45,7 +45,7 @@ def query_rag(request: QueryRequest, db: Session = Depends(get_db)) -> Dict[str,
 
         # 📄 PENYELARASAN 2: Panggil fungsi search_chunks secara langsung
         retrieved_results = search_chunks(
-            db=db, query_embedding=query_vector, top_k=request.top_k * 4
+            db=db, query_embedding=query_vector, top_k=request.top_k * 2
         )
 
         # Rerank ke top_k yang diminta
