@@ -14,7 +14,7 @@ Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 | API | FastAPI |
 | Vector DB | PostgreSQL + pgvector |
 | Embedding | OpenAI `text-embedding-3-small` |
-| LLM | Deepseek V4 Flash (via Groq) |
+| LLM | Deepseek V4 Flash |
 | Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` |
 | Monitoring | Langfuse |
 | Container | Docker + Docker Compose |
@@ -27,7 +27,7 @@ Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 ### Prerequisites
 
 - Docker & Docker Compose
-- API Keys: OpenAI, Groq, Deepseek
+- API Keys: OpenAI, Deepseek
 - (Opsional) Langfuse account untuk monitoring
 
 ### 1. Clone & Konfigurasi
@@ -224,7 +224,7 @@ Salin `.env.example` ke `.env` dan isi nilai berikut:
 DATABASE_URL=postgresql://user:password@localhost:5432/document_intelligence
 
 OPENAI_API_KEY=sk-...
-GROQ_API_KEY=gsk-...
+DEEPSEEK_API_KEY=sk-...
 
 # Langfuse (opsional)
 LANGFUSE_PUBLIC_KEY=pk-lf-...
