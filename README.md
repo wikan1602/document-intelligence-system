@@ -1,6 +1,6 @@
 # Document Intelligence System
 
-Sistem RAG (Retrieval-Augmented Generation) untuk menjawab pertanyaan dari dokumen multi-format dengan **source tracing** ke nama file, halaman, slide, atau sheet.
+Sistem RAG (Retrieval-Augmented Generation) untuk menjawab pertanyaan dari dokumen internal multi-format dengan **source tracing** ke nama file, halaman, slide, atau sheet.
 
 Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 
@@ -14,7 +14,7 @@ Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 | API | FastAPI |
 | Vector DB | PostgreSQL + pgvector |
 | Embedding | OpenAI `text-embedding-3-small` |
-| LLM | Groq `llama-3.3-70b-specdec` |
+| LLM | Deepseek V4 Flash (via Groq) |
 | Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` |
 | Monitoring | Langfuse |
 | Container | Docker + Docker Compose |
@@ -25,9 +25,10 @@ Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 ## Setup & Cara Run
 
 ### Prerequisites
+
 - Docker & Docker Compose
-- API Keys: OpenAI, Groq
-- (Opsional) Langfuse account
+- API Keys: OpenAI, Groq, Deepseek
+- (Opsional) Langfuse account untuk monitoring
 
 ### 1. Clone & Konfigurasi
 
@@ -45,15 +46,20 @@ cp .env.example .env
 docker compose up --build
 ```
 
-API berjalan di `http://localhost:8000`
-UI Chatbot di `http://localhost:8000/chat`
-Swagger docs di `http://localhost:8000/docs`
+| URL | Deskripsi |
+|---|---|
+| `http://localhost:8000` | API root |
+| `http://localhost:8000/chat` | UI Chatbot |
+| `http://localhost:8000/docs` | Swagger API Docs |
+| `http://localhost:8000/health` | Health check |
 
 ### 3. Run Lokal (tanpa Docker)
 
+Pastikan PostgreSQL dengan pgvector extension sudah berjalan.
+
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 uvicorn main:app --reload
@@ -63,47 +69,6 @@ uvicorn main:app --reload
 
 ```bash
 pytest tests/ -v
-```
-
----
-
-## Cara Penggunaan
-
-### Via UI Chatbot
-
-1. Buka `http://localhost:8000/chat`
-2. Drag & drop dokumen ke panel kiri (PDF, DOCX, PPTX, XLSX, CSV)
-3. Tunggu proses indexing selesai
-4. Ketik pertanyaan di kolom chat
-
-### Via API
-
-**Upload dokumen:**
-```bash
-curl -X POST http://localhost:8000/upload \
-  -F "file=@dokumen.pdf"
-```
-
-**Query:**
-```bash
-curl -X POST http://localhost:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "Apa prosedur audit internal?", "top_k": 5}'
-```
-
-**Response:**
-```json
-{
-  "answer": "Berdasarkan dokumen ISO_9001.pdf halaman 12, prosedur audit internal mencakup...",
-  "sources": [
-    {
-      "filename": "ISO_9001.pdf",
-      "page_number": 12,
-      "excerpt": "Internal audits shall be conducted at planned intervals..."
-    }
-  ],
-  "latency_ms": 1240
-}
 ```
 
 ---
@@ -122,17 +87,113 @@ curl -X POST http://localhost:8000/query \
 
 ---
 
+## Contoh Q&A
+
+### Upload Dokumen
+
+```bash
+curl -X POST http://localhost:8000/upload \
+  -F "file=@ISO-9001-2015.pdf"
+```
+
+```json
+{
+  "document_id": "e3cc9f4f-5228-41f2-a177-292a7c29d034",
+  "filename": "ISO-9001-2015.pdf",
+  "format": "pdf",
+  "chunk_count": 47
+}
+```
+
+---
+
+### Q&A 1 — Pertanyaan dari PDF
+
+**Pertanyaan:**
+> Apa prosedur audit internal menurut ISO 9001?
+
+**Jawaban:**
+> Berdasarkan ISO-9001-2015.pdf halaman 27, organisasi wajib melakukan audit internal pada interval yang direncanakan untuk memastikan sistem manajemen mutu memenuhi persyaratan standar dan diimplementasikan secara efektif. Prosedur mencakup: (a) perencanaan program audit mempertimbangkan pentingnya proses dan hasil audit sebelumnya, (b) penetapan kriteria dan ruang lingkup audit, (c) pemilihan auditor yang objektif dan tidak memihak, serta (d) pelaporan hasil audit kepada manajemen terkait.
+
+**Sources:** `ISO-9001-2015.pdf` (Hal. 27)
+
+---
+
+### Q&A 2 — Pertanyaan dari XLSX
+
+**Pertanyaan:**
+> Berapa alokasi dana untuk proyek PRJ-AI-01?
+
+**Jawaban:**
+> Berdasarkan xlsx_alokasi_anggaran.xlsx Sheet Anggaran_IT baris 2, alokasi dana untuk proyek PRJ-AI-01 (Pengembangan Clinical Chatbot) adalah **Rp 750.000.000**, dengan penanggung jawab Wikan P.
+
+**Sources:** `xlsx_alokasi_anggaran.xlsx` (Sheet: Anggaran_IT)
+
+---
+
+### Q&A 3 — Pertanyaan dari DOCX
+
+**Pertanyaan:**
+> Apa saja milestone utama di kuartal pertama proyek modernisasi infrastruktur?
+
+**Jawaban:**
+> Berdasarkan Proyek Modernisasi Infrastruktur TI.docx, Kuartal I berfokus pada inisiasi dan persiapan infrastruktur. Milestone utama meliputi: persetujuan desain arsitektur final, penandatanganan kontrak vendor, penyelesaian pengadaan perangkat utama, aktivasi lingkungan sandbox, dan penyelesaian baseline performa sistem lama.
+
+**Sources:** `Proyek Modernisasi Infrastruktur TI.docx` (Bagian: Kuartal I – Inisiasi dan Persiapan Infrastruktur)
+
+---
+
+### Q&A 4 — Filter Dokumen Spesifik
+
+Query dapat difilter ke dokumen tertentu menggunakan `document_id`:
+
+```bash
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Apa isi klausul 4.1?",
+    "top_k": 5,
+    "document_id": "e3cc9f4f-5228-41f2-a177-292a7c29d034"
+  }'
+```
+
+Di UI `/chat`, gunakan dropdown **Cakupan Query** untuk memilih dokumen tertentu.
+
+---
+
 ## Struktur Project
 
 ```
 document-intelligence-system/
 ├── app/
-│   ├── api/routes/         # upload.py, query.py, documents.py
-│   ├── core/               # config.py, database.py
-│   ├── ingestion/          # detector, extractors, chunker, embedder
-│   ├── retrieval/          # searcher.py, reranker.py
-│   ├── generation/         # generator.py (Groq + Langfuse)
-│   └── models/             # SQLAlchemy ORM
+│   ├── api/
+│   │   ├── dependencies.py
+│   │   └── routes/
+│   │       ├── upload.py
+│   │       ├── query.py
+│   │       └── documents.py
+│   ├── core/
+│   │   ├── config.py
+│   │   └── database.py
+│   ├── ingestion/
+│   │   ├── detector.py
+│   │   ├── chunker.py
+│   │   ├── embedder.py
+│   │   └── extractors/
+│   │       ├── base.py
+│   │       ├── pdf.py
+│   │       ├── docx.py
+│   │       ├── pptx.py
+│   │       ├── xlsx.py
+│   │       └── csv_txt.py
+│   ├── retrieval/
+│   │   ├── searcher.py
+│   │   └── reranker.py
+│   ├── generation/
+│   │   └── generator.py
+│   └── models/
+│       ├── document.py
+│       └── chunk.py
 ├── tests/
 ├── docker/
 │   └── init.sql
@@ -142,9 +203,31 @@ document-intelligence-system/
 │   ├── pptx/
 │   ├── xlsx/
 │   └── csv/
-├── .github/workflows/ci.yml
+├── .github/workflows/
+│   └── ci.yml
+├── main.py
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
-└── .env.example
+├── .env.example
+├── README.md
+└── TECHNICAL.md
+```
+
+---
+
+## Environment Variables
+
+Salin `.env.example` ke `.env` dan isi nilai berikut:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/document_intelligence
+
+OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk-...
+
+# Langfuse (opsional)
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com
 ```
