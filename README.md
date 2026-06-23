@@ -33,7 +33,7 @@ Dibangun sebagai Take Home Test AI Engineer — PT Altimeda Cipta Visitama.
 ### 1. Clone & Konfigurasi
 
 ```bash
-git clone https://github.com/<username>/document-intelligence-system.git
+git clone https://github.com/wikan1602/document-intelligence-system.git
 cd document-intelligence-system
 
 cp .env.example .env
