@@ -15,9 +15,9 @@ router = APIRouter(prefix="/query", tags=["RAG Generation"])
 
 
 class QueryRequest(BaseModel):
-    question: str = Field(..., example="Apa prosedur audit untuk lini produksi X?")
+    question: str
     top_k: int = Field(default=5, ge=1, le=20)
-
+    document_id: str | None = None  # tambah ini kalau belum ada
 
 class SourceMetadata(BaseModel):
     filename: str
@@ -45,7 +45,10 @@ def query_rag(request: QueryRequest, db: Session = Depends(get_db)) -> Dict[str,
 
         # 📄 PENYELARASAN 2: Panggil fungsi search_chunks secara langsung
         retrieved_results = search_chunks(
-            db=db, query_embedding=query_vector, top_k=request.top_k * 2
+            db=db,
+            query_embedding=query_vector,
+            top_k=request.top_k * 2,
+            document_id=request.document_id if hasattr(request, 'document_id') else None,
         )
 
         # Rerank ke top_k yang diminta

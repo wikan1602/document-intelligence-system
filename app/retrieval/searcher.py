@@ -27,35 +27,29 @@ def search_chunks(
     db: Session,
     query_embedding: list[float],
     top_k: int = settings.top_k_results,
+    document_id: str | None = None,  # tambah ini
 ) -> list[SearchResult]:
-    """
-    Cari chunks paling relevan menggunakan cosine similarity via pgvector.
 
-    Menggunakan operator <=> (cosine distance), lalu konversi ke similarity score.
-    """
     embedding_str = "[" + ",".join(str(v) for v in query_embedding) + "]"
 
-    sql = text("""
-        SELECT
-            c.id,
-            c.document_id,
-            d.filename,
-            c.content,
-            1 - (c.embedding <=> :embedding ::vector) AS score,
-            c.page_number,
-            c.slide_number,
-            c.slide_title,
-            c.sheet_name,
-            c.row_range,
-            c.heading
+    # tambah filter kondisional
+    doc_filter = "AND c.document_id = :document_id ::uuid" if document_id else ""
+
+    sql = text(f"""
+        SELECT ...
         FROM chunks c
         JOIN documents d ON d.id = c.document_id
         WHERE c.embedding IS NOT NULL
+        {doc_filter}
         ORDER BY c.embedding <=> :embedding ::vector
         LIMIT :top_k
     """)
 
-    rows = db.execute(sql, {"embedding": embedding_str, "top_k": top_k}).fetchall()
+    params = {"embedding": embedding_str, "top_k": top_k}
+    if document_id:
+        params["document_id"] = document_id
+
+    rows = db.execute(sql, params).fetchall()
 
     return [
         SearchResult(
