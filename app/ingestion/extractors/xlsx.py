@@ -10,7 +10,8 @@ ROWS_PER_CHUNK = 50  # grouping per N baris
 class XLSXExtractor(BaseExtractor):
     """
     Ekstrak konten XLSX per sheet, dikelompokkan setiap ROWS_PER_CHUNK baris.
-    Menyimpan sheet_name dan row_range untuk source tracing.
+    Menyimpan baris pertama (header) dan menempelkannya di setiap chunk
+    agar konteks kolom (schema tabel) tidak hilang untuk RAG/LLM.
     """
 
     def extract(self, file_bytes: bytes, filename: str) -> list[ExtractedChunk]:
@@ -20,36 +21,68 @@ class XLSXExtractor(BaseExtractor):
         for sheet_name in wb.sheetnames:
             ws = wb[sheet_name]
             rows_data: list[str] = []
+
+            header_text = ""
             row_num = 0
+            data_start_row = 0
 
             for row in ws.iter_rows(values_only=True):
                 row_num += 1
-                cell_texts = [str(c) for c in row if c is not None]
-                if cell_texts:
-                    rows_data.append(" | ".join(cell_texts))
 
-                # Flush setiap ROWS_PER_CHUNK baris
+                # Bersihkan nilai None dan string kosong
+                cell_texts = [
+                    str(c).strip()
+                    for c in row
+                    if c is not None and str(c).strip() != ""
+                ]
+                if not cell_texts:
+                    continue  # Skip baris yang kosong sepenuhnya
+
+                row_string = " | ".join(cell_texts)
+
+                # Jadikan baris valid pertama sebagai Header
+                if not header_text:
+                    header_text = row_string
+                    continue
+
+                # Jika sudah ada header, catat baris ini sebagai awal data chunk
+                if not rows_data:
+                    data_start_row = row_num
+
+                rows_data.append(row_string)
+
+                # Flush setiap ROWS_PER_CHUNK baris data
                 if len(rows_data) >= ROWS_PER_CHUNK:
-                    start = row_num - len(rows_data) + 1
-                    end = row_num
+                    # Tempelkan header di atas baris data
+                    chunk_text = f"{header_text}\n" + "\n".join(rows_data)
                     chunks.append(
                         ExtractedChunk(
-                            text="\n".join(rows_data),
+                            text=chunk_text.strip(),
                             sheet_name=sheet_name,
-                            row_range=f"{start}-{end}",
+                            row_range=f"{data_start_row}-{row_num}",
                             metadata={"filename": filename},
                         )
                     )
                     rows_data = []
 
-            # Flush sisa baris
+            # Flush sisa baris data yang kurang dari ROWS_PER_CHUNK
             if rows_data:
-                start = row_num - len(rows_data) + 1
+                chunk_text = f"{header_text}\n" + "\n".join(rows_data)
                 chunks.append(
                     ExtractedChunk(
-                        text="\n".join(rows_data),
+                        text=chunk_text.strip(),
                         sheet_name=sheet_name,
-                        row_range=f"{start}-{row_num}",
+                        row_range=f"{data_start_row}-{row_num}",
+                        metadata={"filename": filename},
+                    )
+                )
+            # Edge case: Jika sheet hanya berisi 1 baris header saja tanpa data
+            elif not chunks and header_text:
+                chunks.append(
+                    ExtractedChunk(
+                        text=header_text,
+                        sheet_name=sheet_name,
+                        row_range="1-1",
                         metadata={"filename": filename},
                     )
                 )
