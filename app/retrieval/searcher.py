@@ -35,15 +35,19 @@ def search_chunks(
     # tambah filter kondisional
     doc_filter = "AND c.document_id = :document_id ::uuid" if document_id else ""
 
-    sql = text(f"""
-        SELECT ...
+    sql = """
+        SELECT 
+            c.id AS chunk_id, 
+            c.document_id, 
+            d.filename, 
+            c.content, 
+            c.page_number
         FROM chunks c
         JOIN documents d ON d.id = c.document_id
         WHERE c.embedding IS NOT NULL
-        {doc_filter}
-        ORDER BY c.embedding <=> :embedding ::vector
-        LIMIT :top_k
-    """)
+        ORDER BY c.embedding <=> %(embedding)s ::vector
+        LIMIT %(top_k)s
+    """
 
     params = {"embedding": embedding_str, "top_k": top_k}
     if document_id:

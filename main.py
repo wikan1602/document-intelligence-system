@@ -657,7 +657,7 @@ async def get_chatbot_ui():
         <div class="nav-icon"><i class="fa-solid fa-brain"></i></div>
         <div>
             <div class="nav-title">Document Intelligence</div>
-            <div class="nav-sub">RAG · pgvector · Groq</div>
+            <div class="nav-sub">RAG · pgvector · Deepseek</div>
         </div>
     </div>
     <div class="nav-right">

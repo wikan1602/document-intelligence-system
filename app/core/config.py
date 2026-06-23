@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # --- pgvector Dimension ---
     embedding_dimensions: int = 1536
 
-    # --- Groq LLM ---
+    # --- Deepseek LLM ---
     deepseek_api_key: str
     llm_model: str = "deepseek-v4-flash"
 

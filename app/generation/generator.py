@@ -1,5 +1,5 @@
 # app/generation/generator.py
-from openai import OpenAI  # 👈 Berubah dari Groq ke OpenAI SDK standard
+from openai import OpenAI
 from langfuse import Langfuse, observe
 
 from app.core.config import settings
@@ -8,7 +8,7 @@ from app.retrieval.searcher import SearchResult
 # Inisialisasi Client DeepSeek menggunakan OpenAI SDK wrapper
 _client = OpenAI(
     api_key=settings.deepseek_api_key,
-    base_url="https://api.deepseek.com",  # 👈 Endpoint resmi DeepSeek API
+    base_url="https://api.deepseek.com",
 )
 
 # Init Langfuse (tetap aktif jika env vars dikonfigurasi)

@@ -154,7 +154,7 @@ Bi-encoder (vector search) mengembedding query dan chunk secara terpisah — int
 
 ## 5. Generation
 
-**Model**: Deepseek V4 Flash (via Groq API)
+**Model**: Deepseek V4 Flash
 - Latency: ~300-800ms
 - Context window: besar, tidak overflow untuk use case ini
 - Temperature: **0.2** — rendah untuk mengutamakan faktualitas
@@ -275,7 +275,7 @@ git push origin main
 #    DATABASE_URL otomatis di-inject
 
 # 4. Set environment variables di Railway dashboard:
-#    OPENAI_API_KEY, GROQ_API_KEY
+#    OPENAI_API_KEY, DEEPSEEK_API_KEY
 #    LANGFUSE_* (opsional)
 
 # 5. Railway detect Dockerfile otomatis → build & deploy
